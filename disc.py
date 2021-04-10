@@ -5,9 +5,13 @@ import asyncio
 
 client = discord.Client()
 TOKEN = "ODMwNDk3Nzc4NTY4Mzk2ODcw.YHHjVA.DoNlv53-mWWPqWPik3Ittvip2gE"
-isThereLocation = False
+sThereLocation = False
 location = " "
 priceRange = None
+globalDistance = 0
+restOption = 0
+stars = 0
+
 
 @client.event
 async def on_ready():
@@ -20,18 +24,20 @@ async def on_message(message):
         return
     msg = message.content
 
-    if msg.startswith('$test'):
-        await message.channel.send("Test")
-    if message.content.startswith('$setLocation'):
+    if msg.startswith('!test'):
+        sayHi()
+    if message.content.startswith('!setLocation'):
         global location
-        location = msg.split("$setLocation ", 1) [1]
+        location = msg.split("!setLocation ", 1) [1]
         await message.channel.send("Your location is " + location)
         isThereLocation = True
-    if message.content.startswith('$giveLocation'):
-        await message.channel.send("Your location is " + location)
+    if message.content.startswith('!giveLocation'):
+        if(isThereLocation):
+          await message.channel.send("Your location is " + location)
+        else:
+          await message.channel.send("You haven't set your location yet")
 
-    if message.content.startswith('$setPriceRange'):
-        tempAuthor = message.author.id
+    if message.content.startswith('!setPriceRange'):
         await message.channel.send("What price? ($)($$)($$$)($$$$)")
         global priceRange
 
@@ -43,7 +49,7 @@ async def on_message(message):
 
         await message.channel.send("Price Range: " + priceRange)
 
-    if message.content.startswith('$givePriceRange'):
+    if message.content.startswith('!givePriceRange'):
         if(priceRange is not None):
             await message.channel.send("Price Range: " + priceRange)
         else:
@@ -59,4 +65,42 @@ async def on_message(message):
       globalDistance = globalDistance.content
       await message.channel.send("Distance: " + globalDistance + " miles")
 
+    if message.content.startswith("!restaurantType"):
+        i = 1
+        while(i != 0):
+            await message.channel.send("What type of restaurant would you like (1) Take-Out (2) Dine-in (3) Delivery (4) Any")
+            global restOption
+
+            def check(m):
+                return m.content
+        
+            restOption = await client.wait_for('message', check = check)
+            restOption = restOption.content
+            if(int(restOption) in range (1,4)):
+                await message.channel.send("Option: " + restOption)
+                i = 0
+            else:
+                await message.channel.send("Please select a valid option")
+
+    if message.content.startswith("!setStars"):
+        i = 1
+        while(i != 0):
+            await message.channel.send("How many stars should the restaraunt have?")
+            global stats
+        
+            def check(m):
+                return m.content
+            stars = await client.wait_for('message', check = check)
+            stars = stars.content
+            if(int(stars) in range(1,5)):
+                await message.channel.send("Stars: " + ('*') * int(stars))
+                i = 0
+            else:
+                await message.channel.send("Please select a valid option (Int between 1 and 5)")
+
+@client.event
+async def sayHi():
+  return "heelo user"
+
 client.run(TOKEN)
+
