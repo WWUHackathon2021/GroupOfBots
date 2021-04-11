@@ -15,7 +15,10 @@ url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+
 #   "delivery" : bool
 #   "description" : str (the term used to search. Often the cuisine. Can be left blank)
 #   "min_stars" : float
-#   "price" : int
+#   "price1" : bool
+#   "price2" : bool
+#   "price3" : bool
+#   "price4" : bool
 
 
 #Restaurant information Dict
@@ -36,7 +39,10 @@ PARAMETER_TYPE_DICT = {
             "delivery"    : bool,
             "description" : str,
             "min_stars"   : float,
-            "price"       : int}
+            "price1"       : bool,
+            "price2"       : bool,
+            "price3"       : bool,
+            "price4"       : bool,}
 
 class ParameterException(Exception):
     pass
@@ -110,9 +116,19 @@ def _assemble_yelp_url(parameters):
     attributes += "RestaurantsTakeOut" if take_out else ""
 
     #Price Range
-    price = parameters.get("price", 0)
     attributes += "%2C" if (take_out or delivery) else ""
-    attributes += f"RestaurantsPriceRange2.{price}" if price!=0 else ""
+    
+    price1 = parameters.get("price1", False)
+    attributes += f"%2CRestaurantsPriceRange2.1" if price1 else ""
+
+    price2 = parameters.get("price2", False)
+    attributes += f"%2CRestaurantsPriceRange2.2" if price2 else ""
+
+    price3 = parameters.get("price3", False)
+    attributes += f"%2CRestaurantsPriceRange2.3" if price3 else ""
+
+    price4 = parameters.get("price4", False)
+    attributes += f"%2CRestaurantsPriceRange2.4" if price4 else ""
 
     url = f"https://www.yelp.com/search?{description}{find_loc}{location}{attributes}&sortby=rating"
 
