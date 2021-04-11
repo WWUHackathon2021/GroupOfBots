@@ -154,7 +154,7 @@ def _check_restaurant(restaurant, parameters):
     if(restaurant["rating"] < parameters["min_stars"]): return False
     if(restaurant["price"] > parameters["price"]): return False
     if(restaurant["distance"] > parameters["max_distance"]): 
-        if(restaurant.get(key, None) == None):
+        if(restaurant.get("distance", None) == None):
             return
         else:
             return False
