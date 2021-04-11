@@ -5,7 +5,7 @@ import re, math
 
 url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+WA&ns=1"
 
-soup = BeautifulSoup()
+
 
 #Search Parameters
 #   "location" (of the user) : str
@@ -130,16 +130,17 @@ def _fetch_html(url):
     #sets value for headers
     headers = {"Accept-languag": "en-US, en; q=0.5"}
     # creates empy array to append html chunks to
-    restaurant_pages = []
+    restaurant_chunks = []
     #Store get reuest to url in variable
     results = requests.get(url, headers=headers)
 
-    restaurant_div = soup.find_all('div', class_='css-1pxmz4g')
+    soup = BeautifulSoup(results.text, "html.parser")
+    restaurants = soup.find_all("div", "businessName__09f24__3Wql2 display--inline-block__09f24__3L1EB border-color--default__09f24__1eOdn")
 
-    for restaurant in restaurant_div:
-        chunk = restaurant.href.a.text
-        restaurant_pages.append(chunk)
-    return restaurant_pages
+    for restaurant in restaurants:
+        restaurant_chunks.append(list(restaurant.parents)[5])
+    
+    return restaurant_chunks
 
 def _parse_restaurant(html):
     """Extracts the relvant data from the given html string
@@ -157,11 +158,11 @@ if __name__ == "__main__":
 
     scraper = Scraper()
     
-    scraper.set_parameter("location", "London")
-    scraper.set_parameter("max_dist", 1.0)
+    scraper.set_parameter("location", "1232 235th PL SW")
+    scraper.set_parameter("max_dist", 5.0)
     scraper.set_parameter("take_out", True)
-    scraper.set_parameter("description", "Thai")
-    scraper.set_parameter("price", 1)
+    scraper.set_parameter("description", "Thai Food")
+    scraper.set_parameter("price", 3)
 
     url = _assemble_yelp_url(scraper._parameters)
 
