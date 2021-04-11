@@ -56,7 +56,7 @@ def scraper_setup():
 
 async def getAddress(message):
     returnAddress = " "
-    await message.channel.send("Please enter your address")
+    await message.channel.send("What's your address?")
 
     def check(m):
         return m.content.startswith('!')
@@ -90,7 +90,7 @@ async def getPrice(message):
 
 async def getDistance(message):
     returnDist = " "
-    await message.channel.send("Please enter the max distance")
+    await message.channel.send("How far are you willing to go?")
 
     def check(m):
         return m.content.startswith("!")
@@ -104,7 +104,7 @@ async def getDistance(message):
         else:
             await message.channel.send(
                 "Please enter a valid number as a distance.")
-    await message.channel.send("Your distance is: " + returnDist + " miles")
+    await message.channel.send("Got it! " + returnDist + " miles away")
     return returnDist
 
 
@@ -173,6 +173,7 @@ async def getCuisine(message):
 
 async def showFood(message, scraper):
     foodList = scraper.search()
+    print(foodList)
     foodDict = foodList[0]
     i = 1
     #Finds the highest rated restaurant
@@ -181,12 +182,10 @@ async def showFood(message, scraper):
             foodDict = foodList[i]
         i += 1
 
-    await message.channel.send("Restaurant: " + foodDict["name"] + "\n" +
-                               "Rating :" + foodDict["rating"] + "\n" +
-                               "Price: " + foodDict["price"] + "\n" +
-                               "Distance: " + foodDict["distance"] + "\n" +
-                               "Address: " + foodDict['addresss'] + "\n" +
-                               "Website: " + foodDict['website'] + "\n")
+    await message.channel.send("Restaurant: " + str(foodDict["name"]) + "\n" +
+                               "Rating :" + str(foodDict["rating"]) + "\n" +
+                               "Price: " + foodDict["price"]*"$" + "\n" +
+                               "Website: " + str(foodDict['website']) + "\n")
 
 
 client.run(os.getenv('TOKEN'))
