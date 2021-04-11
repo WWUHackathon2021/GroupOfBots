@@ -1,10 +1,7 @@
 from bs4 import BeautifulSoup
-<<<<<<< HEAD
 import re
 from geopy.geocoders import Nominatim
-=======
 import requests
->>>>>>> 64f1e2fbf8d5573d7afb458567b31460383d2679
 
 url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+WA&ns=1"
 
