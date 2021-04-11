@@ -22,8 +22,6 @@ url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+
 #    "name" : str
 #    "rating" : float
 #    "price" : int
-#    "distance" : float
-#    "address" : str
 #    "website" : str
 
 
@@ -167,8 +165,6 @@ def _parse_restaurant(restaurant):
     restaurant_dict["name"] = name
     restaurant_dict["rating"] = rating
     restaurant_dict["price"] = price
-    restaurant_dict["distance"] = None
-    restaurant_dict["address"] = None
     restaurant_dict["website"] = website
 
     return restaurant_dict
