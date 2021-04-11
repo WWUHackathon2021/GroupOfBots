@@ -6,9 +6,9 @@ Dismiss it at any point by saying !goodbye
 The bot will ask a series of questions and then return a restaurant from a list of restaurants which match the users answers 
 
 Creators:
-Griffin Craft
-Dylan Carroll
-Noah Reneau
+Griffin Craft,
+Dylan Carroll,
+Noah Reneau,
 Jonas Loeser
 
 Libraries:
