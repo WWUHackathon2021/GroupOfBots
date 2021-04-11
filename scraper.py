@@ -101,7 +101,7 @@ def _assemble_yelp_url(parameters):
     #Take Out / Delivery
     take_out = parameters.get("take_out", False)
     delivery = parameters.get("delivery", False)
-    attributes = "&attrs=" if (take_out or delivery) else ""  
+    attributes = "&attrs="
     attributes += "RestaurantsDelivery" if delivery else ""
     attributes += "%2C" if (take_out and delivery) else ""
     attributes += "RestaurantsTakeOut" if take_out else ""
@@ -196,11 +196,13 @@ if __name__ == "__main__":
 
     scraper = Scraper()
     
-    scraper.set_parameter("location", "1232 235th PL SW")
-    scraper.set_parameter("max_dist", 5.0)
+    scraper.set_parameter("location", "516 High St. Bellingham, WA")
+    scraper.set_parameter("max_dist", 15.0)
     scraper.set_parameter("take_out", True)
-    scraper.set_parameter("description", "Thai Food")
-    scraper.set_parameter("price", 2)
+    scraper.set_parameter("delivery", True)
+    scraper.set_parameter("dine_in", True)
+    scraper.set_parameter("description", "Pizza")
+    scraper.set_parameter("price", 3)
 
     url = _assemble_yelp_url(scraper._parameters)
 
