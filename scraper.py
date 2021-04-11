@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
-import re
 from geopy.geocoders import Nominatim
 import requests
+import re, math
 
 url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+WA&ns=1"
 
@@ -13,9 +13,9 @@ soup = BeautifulSoup()
 #   "dine_in" : bool
 #   "take_out" : bool
 #   "delivery" : bool
-#   "search" : str (the term used to search. Often the quisine. Can be left blank)
+#   "description" : str (the term used to search. Often the cuisine. Can be left blank)
 #   "min_stars" : float
-#   "prince" : int
+#   "price" : int
 
 
 #Restaurant information Dict
@@ -26,34 +26,103 @@ soup = BeautifulSoup()
 #    "address" : str
 #    "website" : str
 
+
+
+MPD_AT_EQUATOR = 69 #Miles per degree at the equator
+
+PARAMETER_TYPE_DICT = {
+            "location"    : str,
+            "max_dist"    : float,
+            "dine_in"     : bool,
+            "take_out"    : bool,
+            "delivery"    : bool,
+            "description" : str,
+            "min_stars"   : float,
+            "price"       : int}
+
+class ParameterException(Exception):
+    pass
+
 class Scraper:
     def __init__(self):
         self._parameters = {}
 
+
     def set_parameter(self, parameter, value):
-        self._parameters[parameter] = value
+        if parameter not in PARAMETER_TYPE_DICT.keys():
+            raise ParameterException(f"\"{parameter}\" is not a recongized parameter name")
+        
+        elif PARAMETER_TYPE_DICT[parameter] != type(value):
+            raise ParameterException(f"\"{parameter}\" is expected to be {PARAMETER_TYPE_DICT[parameter]}, not  {type(value)}")
+        else:
+            self._parameters[parameter] = value
 
     def search(self):
         """Uses the list of parameters to search on yelp for a list of restaurants
-        returns a list of dictionaries with restaurants that fit the criteria."""
+           returns a list of dictionaries with restaurants that fit the criteria."""
         
-        url = _assemble_yelp_url(self._parameters)
-        
-        address = _parameters["location"]
-        print(coordinates_from_address(address), 5)
-
-        _fetch_html(url)
+        pass
 
 def coordinates_from_address(address, radius):
-    """Given the address and the radius, returns pair of coordinates forming a square that bounds that area"""
-    nominatim = Nominatim()
+    """Given the address and the radius, returns a 4-tuple of two sets of coordinates forming a square that bounds that area
+       The coordinites are ordered (longitude, latitude) and the coordinates are ordered (southwest point, northeast point)"""
+    nominatim = Nominatim(user_agent = "Restaurant-Bot")
     location = nominatim.geocode(address)
-    center = (location.latitude, location.longitude)
+    
+    eastward_displacement =  miles_to_longitude(radius/2, location.latitude)
+    northward_displacement = miles_to_latitude(radius/2)
 
+    ne_point = (location.latitude + northward_displacement, location.longitude + eastward_displacement)
+    sw_point = (location.latitude - northward_displacement, location.longitude - eastward_displacement)
+
+    return sw_point[1], sw_point[0], ne_point[1], ne_point[0]
 
 def _assemble_yelp_url(parameters):
     """"Uses the dict of parameters to create the necessary yelp url"""
-    pass
+
+    #Description
+    description =  "find_desc=" + parameters.get("description", "")
+    
+    #Address
+    address = parameters.get("location", "")
+    find_loc = f"&find_loc={address}"
+
+    #Location
+    max_dist = parameters.get("max_dist", 0)
+    coordinates = coordinates_from_address(address, max_dist)
+    location = f"&l=g%3A{coordinates[0]}%2C{coordinates[1]}%2C{coordinates[2]}%2C{coordinates[3]}" if max_dist else ""
+
+    #Take Out / Delivery
+    take_out = parameters.get("take_out", False)
+    delivery = parameters.get("delivery", False)
+    attributes = "&attrs=" if (take_out or delivery) else ""  
+    attributes += "RestaurantsDelivery" if delivery else ""
+    attributes += "%2C" if (take_out and delivery) else ""
+    attributes += "RestaurantsTakeOut" if take_out else ""
+
+    #Price Range
+    price = parameters.get("price", 0)
+    attributes += "%2C" if (take_out or delivery) else ""
+    attributes += f"RestaurantsPriceRange2.{price}" if price!=0 else ""
+
+    url = f"https://www.yelp.com/search?{description}{find_loc}{location}{attributes}&sortby=rating"
+
+    fixed_url = []
+
+    for i, char in enumerate(url):
+        if char == " " : fixed_url.append("%20")
+        elif char == "," : fixed_url.append("%2C")
+        else: fixed_url.append(char)
+    
+    return "".join(fixed_url)
+
+
+def miles_to_longitude(miles, latitude):
+    miles_per_degree = math.cos(latitude * (math.pi/180)) * MPD_AT_EQUATOR
+    return miles / miles_per_degree
+
+def miles_to_latitude(miles):
+    return miles / MPD_AT_EQUATOR
 
 def _fetch_html(url):
     """Grabs the raw html from the yelp page.
@@ -87,5 +156,11 @@ if __name__ == "__main__":
     print("Testing:")
 
     scraper = Scraper()
+    
+    scraper.set_parameter("location", "London")
+    scraper.set_parameter("max_dist", 1.0)
+    scraper.set_parameter("take_out", True)
+    scraper.set_parameter("description", "Thai")
+    scraper.set_parameter("price", 1)
 
-    scraper.search()
+    print(_assemble_yelp_url(scraper._parameters))
