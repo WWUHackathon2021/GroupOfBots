@@ -12,6 +12,15 @@ Noah Reneau
 Jonas Loeser
 
 Labraries:
+
+math
+
+requests
+
 Beautiful Soup
-Discord
+
 re
+
+geopy
+
+Discord
