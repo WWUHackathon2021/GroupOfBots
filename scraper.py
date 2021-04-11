@@ -163,4 +163,11 @@ if __name__ == "__main__":
     scraper.set_parameter("description", "Thai")
     scraper.set_parameter("price", 1)
 
-    print(_assemble_yelp_url(scraper._parameters))
+    url = _assemble_yelp_url(scraper._parameters)
+
+    print(url)
+
+    pages = _fetch_html(url)
+
+    print(pages)
+    
