@@ -44,7 +44,12 @@ PARAMETER_TYPE_DICT = {
             "price3"       : bool,
             "price4"       : bool,}
 
+SEARCH_PAGE_COIUNT = 5
+
 class ParameterException(Exception):
+    pass
+
+class AddressException(Exception):
     pass
 
 class Scraper:
@@ -78,11 +83,20 @@ class Scraper:
 
         return checked_restaurants
 
+def verify_address(address):
+    nominatim = Nominatim(user_agent = "Restaurant-Bot")
+    location = nominatim.geocode(address)
+
+    return location is not None
+
 def coordinates_from_address(address, radius):
     """Given the address and the radius, returns a 4-tuple of two sets of coordinates forming a square that bounds that area
        The coordinites are ordered (longitude, latitude) and the coordinates are ordered (southwest point, northeast point)"""
     nominatim = Nominatim(user_agent = "Restaurant-Bot")
     location = nominatim.geocode(address)
+
+    if location is None:
+        raise AddressException(f"\"{address}\" is not a valida address.")
     
     eastward_displacement =  miles_to_longitude(radius/2, location.latitude)
     northward_displacement = miles_to_latitude(radius/2)
@@ -119,18 +133,18 @@ def _assemble_yelp_url(parameters):
     attributes += "%2C" if (take_out or delivery) else ""
     
     price1 = parameters.get("price1", False)
-    attributes += f"%2CRestaurantsPriceRange2.1" if price1 else ""
+    attributes += "%2CRestaurantsPriceRange2.1" if price1 else ""
 
     price2 = parameters.get("price2", False)
-    attributes += f"%2CRestaurantsPriceRange2.2" if price2 else ""
+    attributes += "%2CRestaurantsPriceRange2.2" if price2 else ""
 
     price3 = parameters.get("price3", False)
-    attributes += f"%2CRestaurantsPriceRange2.3" if price3 else ""
+    attributes += "%2CRestaurantsPriceRange2.3" if price3 else ""
 
     price4 = parameters.get("price4", False)
-    attributes += f"%2CRestaurantsPriceRange2.4" if price4 else ""
+    attributes += "%2CRestaurantsPriceRange2.4" if price4 else ""
 
-    url = f"https://www.yelp.com/search?{description}{find_loc}{location}{attributes}&sortby=rating"
+    url = f"https://www.yelp.com/search?{description}{find_loc}{location}{attributes}&sortby=rating&start="
 
     fixed_url = []
 
@@ -152,25 +166,29 @@ def miles_to_latitude(miles):
 def _fetch_html(url):
     """Grabs the raw html from the yelp page.
     Returns a list of strings holding chunks of html correspond to the data on restaurants"""
-    
-    #check if business name has number to avoid ads
-    #https://www.yelp.com/search?find_desc=Thai%20Food&find_loc=Bellingham%2C%20WA (page 1)
-    #https://www.yelp.com/search?find_desc=Thai%20Food&find_loc=Bellingham%2C%20WA&start=10
 
-    #sets value for headers
     headers = {"Accept-languag": "en-US, en; q=0.5"}
-    # creates empy array to append html chunks to
     restaurant_chunks = []
-    #Store get reuest to url in variable
-    results = requests.get(url, headers=headers)
 
-    soup = BeautifulSoup(results.text, "html.parser")
-    restaurants = soup.find_all("div", "businessName__09f24__3Wql2 display--inline-block__09f24__3L1EB border-color--default__09f24__1eOdn")
+    for page_num in range(0, 10):
+        current_url = url + str(page_num * 10)
+    
+        #Store get reuest to url in variable
+        results = requests.get(current_url, headers=headers)
 
-    for restaurant in restaurants:
-        restaurant_chunks.append(list(restaurant.parents)[5])
+        soup = BeautifulSoup(results.text, "html.parser")
+        restaurants = soup.find_all("div", "businessName__09f24__3Wql2 display--inline-block__09f24__3L1EB border-color--default__09f24__1eOdn")
+
+        if len(restaurants) == 0: 
+            break
+
+        for restaurant in restaurants:
+            restaurant_chunk = list(restaurant.parents)[5]
+            #restaurant_is_ad(restaurant_chunk)
+            restaurant_chunks.append(restaurant_chunk)
     
     return restaurant_chunks
+
 
 def _parse_restaurant(restaurant):
     """Extracts the relvant data from the given html string
@@ -179,19 +197,25 @@ def _parse_restaurant(restaurant):
 
     a_tag = restaurant.find("a", class_="css-166la90")
     rating_img = restaurant.find("img", src="https://s3-media0.fl.yelpcdn.com/assets/public/stars_v2.yji-52d3d7a328db670d4402843cbddeed89.png")
-    rating_div = rating_img.find_parent()
+    
     price_span = restaurant.find("span", class_="priceRange__09f24__2O6le css-xtpg8e")
 
 
     name = a_tag.get_text()
-
-    rating = rating_div.get("aria-label")
-    rating = float(rating.split(" ")[0])
-    
-    price = price_span.get_text()
-    price = len(price)
-
     website =  "https://www.yelp.com" + str(a_tag.get("href"))
+
+    rating = 0
+    if rating_img is not None:
+        rating_div = rating_img.find_parent()
+        rating = rating_div.get("aria-label")
+        rating = float(rating.split(" ")[0])
+    
+    price = None
+    if price_span is not None:
+        price = price_span.get_text()
+        price = len(price)
+
+    
 
     restaurant_dict = {}
     restaurant_dict["name"] = name
@@ -207,7 +231,6 @@ def _check_restaurant(restaurant, parameters):
     """Checks that a restaurant conforms to the search parameters
     Returns true if it does and false if it does not"""
     if(restaurant["rating"] < parameters["min_stars"]): return False
-    if(restaurant["price"] > parameters["price"]): return False
     else: return True
 
 if __name__ == "__main__":
@@ -215,21 +238,18 @@ if __name__ == "__main__":
 
     scraper = Scraper()
     
-    scraper.set_parameter("location", "516 High St. Bellingham, WA")
-    scraper.set_parameter("max_dist", 15.0)
+    scraper.set_parameter("location", "Bothel, WA")
+    scraper.set_parameter("max_dist", 1.0)
     scraper.set_parameter("take_out", True)
     scraper.set_parameter("delivery", True)
     scraper.set_parameter("dine_in", True)
     scraper.set_parameter("description", "Pizza")
-    scraper.set_parameter("price", 3)
+    scraper.set_parameter("price2", True)
 
     url = _assemble_yelp_url(scraper._parameters)
-
     print(url)
 
     chunks = _fetch_html(url)
 
     for chunk in chunks:
         print(_parse_restaurant(chunk))
-        
-    
