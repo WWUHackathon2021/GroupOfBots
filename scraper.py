@@ -60,14 +60,17 @@ class Scraper:
            returns a list of dictionaries with restaurants that fit the criteria."""
         
         url = _assemble_yelp_url(self._parameters)
-
+        print(url)
         chunks = _fetch_html(url)
 
         restaurants = [_parse_restaurant(chunk) for chunk in chunks]
 
-        restaurants = [_check_restaurant(restaurant) for restaurant in restaurants]
+        checked_restaurants = []
+        for restaurant in restaurants:
+          if _check_restaurant(restaurant, self._parameters):
+            checked_restaurants.append(restaurant)
 
-        return restaurants
+        return checked_restaurants
 
 def coordinates_from_address(address, radius):
     """Given the address and the radius, returns a 4-tuple of two sets of coordinates forming a square that bounds that area
