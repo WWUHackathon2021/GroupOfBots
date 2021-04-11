@@ -1,5 +1,9 @@
 from bs4 import BeautifulSoup
+import requests
 
+url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=Bellingham%2C+WA&ns=1"
+
+soup = BeautifulSoup()
 
 #Search Parameters
 #   "location" (of the user) : str
@@ -40,8 +44,19 @@ def _assemble_yelp_url(parameters):
 def _fetch_html(url):
     """Grabs the raw html from the yelp page.
     Returns a list of strings holding chunks of html correspond to the data on restaurants"""
-    
-    pass
+    #sets value for headers
+    headers = {"Accept-languag": "en-US, en; q=0.5"}
+    # creates empy array to append html chunks to
+    restaurant_pages = []
+    #Store get reuest to url in variable
+    results = requests.get(url, headers=headers)
+
+    restaurant_div = soup.find_all('div', class_='css-1pxmz4g')
+
+    for restaurant in restaurant_div:
+        chunk = restaurant.href.a.text
+        restaurant_pages.append(chunk)
+    return restaurant_pages
 
 def _parse_restaurant(html):
     """Extracts the relvant data from the given html string
