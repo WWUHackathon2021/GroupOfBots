@@ -3,7 +3,8 @@ Wake the bot by saying !FoodBot
 
 Dismiss it at any point by saying !goodbye
 
-The bot will ask a series of questions and then return a restaurant from a list of restaurants which match the users answers 
+The bot will ask a series of questions and then return a restaurant from a list of restaurants which match the users answers
+(Open hours and times may differ)
 
 Creators:
 Griffin Craft,
@@ -26,3 +27,5 @@ Discord
 random
 
 os
+
+re
