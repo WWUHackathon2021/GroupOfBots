@@ -1,17 +1,17 @@
 Welcome to our Discord Bot. Its purpose is to help you and a group of friends find a good place to eat. 
-Wake the bot by saying ____________
+Wake the bot by saying !FoodBot
 
-Dismiss it at any point by saying __________
+Dismiss it at any point by saying !goodbye
 
-The bot will ask a serries of questions and then deliver a list of resteraunts matching your preferences. 
+The bot will ask a series of questions and then return a restaurant from a list of restaurants which match the users answers 
 
 Creators:
-Griffin Craft
-Dylan Carroll
-Noah Reneau
+Griffin Craft,
+Dylan Carroll,
+Noah Reneau,
 Jonas Loeser
 
-Labraries:
+Libraries:
 
 math
 
@@ -19,8 +19,10 @@ requests
 
 Beautiful Soup
 
-re
-
 geopy
 
 Discord
+
+random
+
+os
