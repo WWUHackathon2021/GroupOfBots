@@ -151,7 +151,10 @@ def _parse_restaurant(html):
 def _check_restaurant(restaurant, parameters):
     """Checks that a restaurant conforms to the search parameters
     Returns true if it does and false if it does not"""
-    pass
+    if(restaurant["distance"] > parameters["max_distance"]): return False
+    if(restaurant["rating"] < parameters["min_stars"]): return False
+    if(restaurant["price"] > parameters["price"]): return False
+    else: return True
 
 if __name__ == "__main__":
     print("Testing:")
@@ -162,7 +165,7 @@ if __name__ == "__main__":
     scraper.set_parameter("max_dist", 5.0)
     scraper.set_parameter("take_out", True)
     scraper.set_parameter("description", "Thai Food")
-    scraper.set_parameter("price", 3)
+    scraper.set_parameter("price", 2)
 
     url = _assemble_yelp_url(scraper._parameters)
 
