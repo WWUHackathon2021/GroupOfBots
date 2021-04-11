@@ -142,11 +142,38 @@ def _fetch_html(url):
     
     return restaurant_chunks
 
-def _parse_restaurant(html):
+def _parse_restaurant(restaurant):
     """Extracts the relvant data from the given html string
     returns a dictionary with the restaurant's information"""
     
-    pass
+
+    a_tag = restaurant.find("a", class_="css-166la90")
+    rating_img = restaurant.find("img", src="https://s3-media0.fl.yelpcdn.com/assets/public/stars_v2.yji-52d3d7a328db670d4402843cbddeed89.png")
+    rating_div = rating_img.find_parent()
+    price_span = restaurant.find("span", class_="priceRange__09f24__2O6le css-xtpg8e")
+
+
+    name = a_tag.get_text()
+
+    rating = rating_div.get("aria-label")
+    rating = float(rating.split(" ")[0])
+    
+    price = price_span.get_text()
+    price = len(price)
+
+    website =  "https://www.yelp.com" + str(a_tag.get("href"))
+
+    restaurant_dict = {}
+    restaurant_dict["name"] = name
+    restaurant_dict["rating"] = rating
+    restaurant_dict["price"] = price
+    restaurant_dict["distance"] = None
+    restaurant_dict["address"] = None
+    restaurant_dict["website"] = website
+
+    return restaurant_dict
+
+
 
 def _check_restaurant(restaurant, parameters):
     """Checks that a restaurant conforms to the search parameters
@@ -162,13 +189,15 @@ if __name__ == "__main__":
     scraper.set_parameter("max_dist", 5.0)
     scraper.set_parameter("take_out", True)
     scraper.set_parameter("description", "Thai Food")
-    scraper.set_parameter("price", 3)
+    scraper.set_parameter("price", 2)
 
     url = _assemble_yelp_url(scraper._parameters)
 
     print(url)
 
-    pages = _fetch_html(url)
+    chunks = _fetch_html(url)
 
-    print(pages)
+    for chunk in chunks:
+        print(_parse_restaurant(chunk))
+        
     
