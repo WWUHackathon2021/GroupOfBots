@@ -151,9 +151,13 @@ def _parse_restaurant(html):
 def _check_restaurant(restaurant, parameters):
     """Checks that a restaurant conforms to the search parameters
     Returns true if it does and false if it does not"""
-    if(restaurant["distance"] > parameters["max_distance"]): return False
     if(restaurant["rating"] < parameters["min_stars"]): return False
     if(restaurant["price"] > parameters["price"]): return False
+    if(restaurant["distance"] > parameters["max_distance"]): 
+        if(restaurant.get(key, None) == None):
+            return
+        else:
+            return False
     else: return True
 
 if __name__ == "__main__":
