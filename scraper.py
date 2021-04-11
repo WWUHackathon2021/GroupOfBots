@@ -127,6 +127,11 @@ def miles_to_latitude(miles):
 def _fetch_html(url):
     """Grabs the raw html from the yelp page.
     Returns a list of strings holding chunks of html correspond to the data on restaurants"""
+    
+    #check if business name has number to avoid ads
+    #https://www.yelp.com/search?find_desc=Thai%20Food&find_loc=Bellingham%2C%20WA (page 1)
+    #https://www.yelp.com/search?find_desc=Thai%20Food&find_loc=Bellingham%2C%20WA&start=10
+
     #sets value for headers
     headers = {"Accept-languag": "en-US, en; q=0.5"}
     # creates empy array to append html chunks to
@@ -153,11 +158,6 @@ def _check_restaurant(restaurant, parameters):
     Returns true if it does and false if it does not"""
     if(restaurant["rating"] < parameters["min_stars"]): return False
     if(restaurant["price"] > parameters["price"]): return False
-    if(restaurant["distance"] > parameters["max_distance"]): 
-        if(restaurant.get("distance", None) == None):
-            return
-        else:
-            return False
     else: return True
 
 if __name__ == "__main__":
